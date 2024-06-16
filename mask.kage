@@ -1,0 +1,7 @@
+package main
+
+func Fragment(pos vec4, tex vec2, col vec4) vec4 {
+    srcClr := imageSrc0At(tex)
+    maskClr := imageSrc1At(tex)
+    return vec4(srcClr.r, srcClr.g, srcClr.b, srcClr.a * maskClr.a)
+}
