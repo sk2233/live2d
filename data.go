@@ -86,7 +86,7 @@ type VerticesData struct {
 	Mobility     float64  `json:"Mobility"`
 	Delay        float64  `json:"Delay"`
 	Acceleration float64  `json:"Acceleration"`
-	Radius       int      `json:"Radius"`
+	Radius       float64  `json:"Radius"`
 }
 
 type NormalizationData struct {

@@ -7,23 +7,25 @@ package main
 import "github.com/hajimehoshi/ebiten/v2"
 
 type Model struct {
+	RootDir         string
 	ModelData       *ModelData
-	PhysicData      *PhysicData
-	PoseData        *PoseData
-	DisplayData     *DisplayData
 	ExpressionDatas []*ExpressionData1
 	MotionDatas     map[string][]*MotionData1
-	UserData        *UserData0
 	Moc             *Moc
 	Drawables       []*Drawable
 	Motions         map[string][]*Motion
+	// 暂时没有用到的数据
+	DisplayData *DisplayData
+	PhysicData  *PhysicData
+	PoseData    *PoseData
+	UserData    *UserData0
 }
 
 type Moc struct {
 	// 这些 byte空间由 c 占用，不能写入或提前释放
-	MocPtr    uintptr
+	Moc       Moc0
 	MocBuff   []byte
-	ModelPtr  uintptr
+	Model     Model0
 	ModelBuff []byte
 }
 
@@ -38,7 +40,7 @@ type Drawable struct {
 	Masks   []uint32
 	// 动态属性，每帧需要更新的属性
 	DFlag   uint8
-	Order   uint32
+	Order   int32
 	Opacity float32
 	Pos     []Vector2
 }

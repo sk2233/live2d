@@ -5,22 +5,20 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// https://www.live2d.com/en/sdk/download/native/ sdk
-// https://docs.live2d.com/en/cubism-sdk-manual/cubism-core-api-reference/ doc
-// https://www.live2d.com/en/learn/sample/ official resource
-
 func main() {
-	core := NewCore("res/libLive2DCubismCore.dylib")
-	model := core.LoadModel("res/hiyori/hiyori_free_t08.model3.json")
-	size, _, _ := core.GetCanvasInfo(model.Moc.ModelPtr)
-	scale := float32(0.28)
-	w, h := size.X*scale, size.Y*scale
-	motionManager := NewMotionManager(core, model, w, h)
-	motionManager.PlayMotion("Idle", 2, true)
-	ebiten.SetWindowSize(WinW, WinH)
+	fmt.Println(GetVersion())
+	model := LoadModel("res/haru/haru.model3.json")
+	size, _, _ := GetCanvasInfo(model.Moc.Model)
+	scale := float32(1)
+	WinW, WinH = size.X*scale, size.Y*scale
+	motionManager := NewMotionManager(model, WinW, WinH)
+	motionManager.PlayMotion("Idle", true)
+	ebiten.SetWindowSize(int(WinW), int(WinH))
 	ebiten.SetWindowDecorated(false)
 	ebiten.SetWindowFloating(true)
 	//ebiten.SetWindowMousePassthrough(true)

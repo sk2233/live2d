@@ -12,13 +12,9 @@ import (
 type App struct {
 	MotionManager *MotionManager
 	Scale         float64
-	IdleIndex     int
-	OnceIndex     int
+	AnimIndex     int
+	AnimNames     []string
 }
-
-var (
-	onceAnims = []string{"Flick", "FlickDown", "Tap", "Tap@Body", "Flick@Body"}
-)
 
 var (
 	lastX = 0
@@ -27,13 +23,9 @@ var (
 
 func (a *App) Update() error {
 	a.MotionManager.Update(1.0 / float64(ebiten.TPS()))
-	if inpututil.IsKeyJustPressed(ebiten.KeyI) {
-		a.IdleIndex = (a.IdleIndex + 1) % 3
-		a.MotionManager.PlayMotion("Idle", a.IdleIndex, true)
-	}
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		a.OnceIndex = (a.OnceIndex + 1) % len(onceAnims)
-		a.MotionManager.PlayMotion(onceAnims[a.OnceIndex], 0, false)
+		a.AnimIndex = (a.AnimIndex + 1) % len(a.AnimNames)
+		a.MotionManager.PlayMotion(a.AnimNames[a.AnimIndex], true)
 	}
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		lastX, lastY = ebiten.CursorPosition()
@@ -54,5 +46,5 @@ func (a *App) Layout(w, h int) (int, int) {
 }
 
 func NewApp(motionManager *MotionManager, scale float32) *App {
-	return &App{MotionManager: motionManager, Scale: float64(scale)}
+	return &App{MotionManager: motionManager, Scale: float64(scale), AnimIndex: 0, AnimNames: motionManager.GetAllMotions()}
 }

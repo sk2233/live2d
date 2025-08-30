@@ -14,6 +14,7 @@ const ( // 几种 Curve 的类型
 const (
 	TargetPartOpacity = "PartOpacity"
 	TargetParameter   = "Parameter"
+	TargetModel       = "Model"
 )
 
 const (
@@ -26,7 +27,7 @@ const (
 	DFlagBlendColorChange
 )
 
-const (
-	WinW = 280
-	WinH = 800
+var (
+	WinW = float32(0)
+	WinH = float32(0)
 )

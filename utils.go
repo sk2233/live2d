@@ -33,8 +33,8 @@ func UnmarshalFile(path string, dst any) {
 	HandleErr(err)
 }
 
-func SliceToPtr[T any](data []T) uintptr {
-	return uintptr(unsafe.Pointer(&data[0]))
+func SliceToPtr[T any](data []T) unsafe.Pointer {
+	return unsafe.Pointer(&data[0])
 }
 
 func Assert(val bool, msg string, args ...any) {
@@ -43,11 +43,19 @@ func Assert(val bool, msg string, args ...any) {
 	}
 }
 
-func PtrToSlice[T any](ptr uintptr, count int) []T {
-	return unsafe.Slice((*T)(unsafe.Pointer(ptr)), count)
+func PtrToSlice[T any](ptr unsafe.Pointer, count int32) []T {
+	return unsafe.Slice((*T)(ptr), count)
 }
 
-func PtrToStr(ptr uintptr) string {
+func PtrToSlice2[T any](ptr unsafe.Pointer, counts []int32) [][]T {
+	res := make([][]T, 0)
+	for i, count := range counts { // 8 是指针大小
+		res = append(res, unsafe.Slice(*(**T)(unsafe.Pointer(uintptr(ptr) + uintptr(i*8))), count))
+	}
+	return res
+}
+
+func PtrToStr(ptr unsafe.Pointer) string {
 	bs := PtrToSlice[byte](ptr, 32)
 	for i := 0; i < len(bs); i++ {
 		if bs[i] == '\x00' {
@@ -139,7 +147,7 @@ func GetFade(motion *Motion, timer float64) (float64, float64) {
 		fadeIn = GetEasingSine(timer / motion.Data.Data.FadeInTime)
 	}
 	fadeOut := 1.0
-	if motion.Data.Data.FadeOutTime > 0 {
+	if motion.Data.Data.FadeOutTime > 0 && motion.Data.Meta.Duration > 0 {
 		fadeOut = GetEasingSine(timer / motion.Data.Data.FadeOutTime)
 	}
 	return fadeIn, fadeOut
@@ -155,39 +163,40 @@ func GetEasingSine(rate float64) float64 {
 	return 0.5 - 0.5*math.Cos(rate*math.Pi)
 }
 
-func GetRightSegment(segments []*Segment, timer float64) *Segment {
+func GetRightSegments(segments []*Segment, timer float64) []*Segment {
+	res := make([]*Segment, 0)
 	for _, segment := range segments {
 		switch segment.Type {
 		case CurveLinear:
 			if segment.Points[0].Time <= timer && segment.Points[1].Time >= timer {
-				return segment
+				res = append(res, segment)
 			}
 		case CurveBezier:
 			if segment.Points[0].Time <= timer && segment.Points[3].Time >= timer {
-				return segment
+				res = append(res, segment)
 			}
 		case CurveStepped:
 			if segment.Points[0].Time <= timer && segment.Value >= timer {
-				return segment
+				res = append(res, segment)
 			}
 		case CurveInverseStepped:
 			if segment.Value <= timer && segment.Points[0].Time >= timer {
-				return segment
+				res = append(res, segment)
 			}
 		default:
 			panic(fmt.Sprintf("invalid type0: %v", segment.Type))
 		}
 	}
-	return nil
+	return res
 }
 
 func GetSegmentValue(segment *Segment, timer float64) float64 {
 	switch segment.Type {
 	case CurveLinear:
-		rate := (timer - segment.Points[0].Time) / (segment.Points[1].Time - segment.Points[0].Time)
+		rate := max((timer-segment.Points[0].Time)/(segment.Points[1].Time-segment.Points[0].Time), 0)
 		return segment.Points[0].Value + rate*(segment.Points[1].Value-segment.Points[0].Value)
 	case CurveBezier:
-		rate := (timer - segment.Points[0].Time) / (segment.Points[3].Time - segment.Points[0].Time)
+		rate := max((timer-segment.Points[0].Time)/(segment.Points[3].Time-segment.Points[0].Time), 0)
 		// 多次取线性值
 		p01 := LerpPoint(segment.Points[0], segment.Points[1], rate)
 		p12 := LerpPoint(segment.Points[1], segment.Points[2], rate)
@@ -231,5 +240,21 @@ func OpenShader(path string) *ebiten.Shader {
 	bs := ReadFile(path)
 	res, err := ebiten.NewShader(bs)
 	HandleErr(err)
+	return res
+}
+
+func AlignByte(data []byte, size int) []byte {
+	if len(data)%size == 0 {
+		return data
+	}
+	size -= len(data) % size
+	return append(data, make([]byte, size)...)
+}
+
+func Repeat[T any](data T, count int) []T {
+	res := make([]T, 0)
+	for i := 0; i < count; i++ {
+		res = append(res, data)
+	}
 	return res
 }
