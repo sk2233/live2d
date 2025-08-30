@@ -163,31 +163,30 @@ func GetEasingSine(rate float64) float64 {
 	return 0.5 - 0.5*math.Cos(rate*math.Pi)
 }
 
-func GetRightSegments(segments []*Segment, timer float64) []*Segment {
-	res := make([]*Segment, 0)
+func GetRightSegments(segments []*Segment, timer float64) *Segment {
 	for _, segment := range segments {
 		switch segment.Type {
 		case CurveLinear:
 			if segment.Points[0].Time <= timer && segment.Points[1].Time >= timer {
-				res = append(res, segment)
+				return segment
 			}
 		case CurveBezier:
 			if segment.Points[0].Time <= timer && segment.Points[3].Time >= timer {
-				res = append(res, segment)
+				return segment
 			}
 		case CurveStepped:
 			if segment.Points[0].Time <= timer && segment.Value >= timer {
-				res = append(res, segment)
+				return segment
 			}
 		case CurveInverseStepped:
 			if segment.Value <= timer && segment.Points[0].Time >= timer {
-				res = append(res, segment)
+				return segment
 			}
 		default:
 			panic(fmt.Sprintf("invalid type0: %v", segment.Type))
 		}
 	}
-	return res
+	return nil
 }
 
 func GetSegmentValue(segment *Segment, timer float64) float64 {

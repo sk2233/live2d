@@ -10,7 +10,7 @@ package main
 
 #include "Live2DCubismCore.h"
 */
-import "C"
+import "C" // 采用静态链接，可以打包为一个文件，性能更好
 import (
 	"fmt"
 	"path/filepath"

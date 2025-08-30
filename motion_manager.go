@@ -72,32 +72,33 @@ func (m *MotionManager) UpdateMotion(delta float64) {
 	fadeIn, fadeOut := GetFade(m.Motion, m.Timer)
 	for _, curve := range m.Motion.Curves {
 		// 每个曲线控制一个部分，一个曲线分为多段，循环获取当前时间对应的段
-		segments := GetRightSegments(curve.Segments, m.Timer) // 可能存在多个控制块
-		for _, segment := range segments {
-			value := GetSegmentValue(segment, m.Timer) // TODO 确实只有一个
-			switch curve.Data.Target {
-			case TargetPartOpacity:
-				SetPartOpacity(m.Model.Moc.Model, curve.Data.Id, float32(value))
-			case TargetParameter:
-				oldValue := GetParameterValue(m.Model.Moc.Model, curve.Data.Id)
-				fin, fout := fadeIn, fadeOut // 默认都取全局默认值，我们认为 FadeInTime<0 FadeOutTime<0 是默认值
-				if curve.FadeInTime > 0 {
-					fin = GetEasingSine(m.Timer / curve.FadeInTime)
-				} else if curve.FadeInTime == 0 { // 不需要时间直接就是最终状态
-					fin = 1
-				}
-				if curve.FadeOutTime > 0 {
-					fout = GetEasingSine((m.Motion.Data.Meta.Duration - m.Timer) / curve.FadeOutTime)
-				} else if curve.FadeOutTime == 0 {
-					fout = 1
-				}
-				newValue := oldValue + float32(fin*fout)*(float32(value)-oldValue)
-				SetParameterValue(m.Model.Moc.Model, curve.Data.Id, newValue)
-			case TargetModel:
-				// TODO
-			default:
-				panic(fmt.Sprintf("invalid target: %v", curve.Data.Target))
+		segment := GetRightSegments(curve.Segments, m.Timer)
+		if segment == nil { // 可能没有需要修改的参数
+			continue
+		}
+		value := GetSegmentValue(segment, m.Timer)
+		switch curve.Data.Target {
+		case TargetPartOpacity:
+			SetPartOpacity(m.Model.Moc.Model, curve.Data.Id, float32(value))
+		case TargetParameter:
+			oldValue := GetParameterValue(m.Model.Moc.Model, curve.Data.Id)
+			fin, fout := fadeIn, fadeOut // 默认都取全局默认值，我们认为 FadeInTime<0 FadeOutTime<0 是默认值
+			if curve.FadeInTime > 0 {
+				fin = GetEasingSine(m.Timer / curve.FadeInTime)
+			} else if curve.FadeInTime == 0 { // 不需要时间直接就是最终状态
+				fin = 1
 			}
+			if curve.FadeOutTime > 0 {
+				fout = GetEasingSine((m.Motion.Data.Meta.Duration - m.Timer) / curve.FadeOutTime)
+			} else if curve.FadeOutTime == 0 {
+				fout = 1
+			}
+			newValue := oldValue + float32(fin*fout)*(float32(value)-oldValue)
+			SetParameterValue(m.Model.Moc.Model, curve.Data.Id, newValue)
+		case TargetModel:
+			// TODO
+		default:
+			panic(fmt.Sprintf("invalid target: %v", curve.Data.Target))
 		}
 	}
 }
