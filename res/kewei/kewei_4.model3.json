@@ -39,11 +39,6 @@
           "File": "motions/idle1.motion3.json"
         }
       ],
-      "idle3": [
-        {
-          "File": "motions/idle3.motion3.json"
-        }
-      ],
       "login": [
         {
           "File": "motions/login.motion3.json"
@@ -97,16 +92,6 @@
       "touch_drag10": [
         {
           "File": "motions/touch_drag10.motion3.json"
-        }
-      ],
-      "touch_drag11": [
-        {
-          "File": "motions/touch_drag11.motion3.json"
-        }
-      ],
-      "touch_drag12": [
-        {
-          "File": "motions/touch_drag12.motion3.json"
         }
       ],
       "touch_head": [

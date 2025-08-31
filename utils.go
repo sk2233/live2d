@@ -227,14 +227,6 @@ func OpenImage(path string) *ebiten.Image {
 	return res
 }
 
-func Max[T float32](v1, v2 T) T {
-	if v1 > v2 {
-		return v1
-	} else {
-		return v2
-	}
-}
-
 func OpenShader(path string) *ebiten.Shader {
 	bs := ReadFile(path)
 	res, err := ebiten.NewShader(bs)

@@ -18,7 +18,6 @@ type MotionManager struct {
 	Motion      *Motion
 	Timer       float64
 	Loop        bool
-	W, H        float32
 	Shader      *ebiten.Shader
 	AudioPlayer *AudioPlayer
 	// shader中使用的图片必须等大小，这里必须要先把图片绘制到另一个图片上
@@ -145,7 +144,7 @@ func (m *MotionManager) UpdateModel() {
 	}
 }
 
-func (m *MotionManager) Draw(screen *ebiten.Image, scale float64) {
+func (m *MotionManager) Draw(screen *ebiten.Image) {
 	// 临时排序进行渲染
 	orderDs := make([]*Drawable, 0)
 	for _, drawable := range m.Model.Drawables {
@@ -156,7 +155,7 @@ func (m *MotionManager) Draw(screen *ebiten.Image, scale float64) {
 	})
 	vts := make([][]ebiten.Vertex, 0)
 	for _, drawable := range orderDs {
-		vts = append(vts, m.ToVertexes(drawable, float32(scale)))
+		vts = append(vts, m.ToVertexes(drawable))
 	}
 	for i, drawable := range orderDs { // order用法太奇怪了，建议挪出Drawable
 		if !HasFlag(drawable.DFlag, DFlagVisible) {
@@ -178,7 +177,7 @@ func (m *MotionManager) Draw(screen *ebiten.Image, scale float64) {
 			options := &ebiten.DrawRectShaderOptions{}
 			options.Images[0] = m.Src
 			options.Images[1] = m.Mask
-			screen.DrawRectShader(int(m.W), int(m.H), m.Shader, options)
+			screen.DrawRectShader(int(Size.X), int(Size.Y), m.Shader, options)
 		} else {
 			option := &ebiten.DrawTrianglesOptions{}
 			option.ColorM.Scale(1, 1, 1, float64(drawable.Opacity))
@@ -196,30 +195,44 @@ func GetOrderDsIndex(orderDs []*Drawable, id string) int {
 	panic(fmt.Sprintf("invalid id: %v", id))
 }
 
-func (m *MotionManager) ToVertexes(drawable *Drawable, scale float32) []ebiten.Vertex {
+func (m *MotionManager) ToVertexes(drawable *Drawable) []ebiten.Vertex {
 	bound := drawable.Image.Bounds()
 	w, h := float32(bound.Dx()), float32(bound.Dy())
 	res := make([]ebiten.Vertex, 0)
-	size := Max(m.W, m.H)
+	size := min(Size.X, Size.Y)
 	for i := 0; i < len(drawable.Pos); i++ {
 		// 主要注意绘图坐标系 y 轴反转
 		// 注意最终图片是绘制出正方形的，而视口是长方形，要进行一定调整
-		res = append(res, ebiten.Vertex{
-			DstX:   ((drawable.Pos[i].X+1)*size/2 - (size-WinW)/2) * scale / 2,
-			DstY:   ((1-drawable.Pos[i].Y)*size/2 - (size-WinH)/2) * scale / 2,
-			SrcX:   drawable.Uvs[i].X * w,
-			SrcY:   (1 - drawable.Uvs[i].Y) * h,
-			ColorR: 1,
-			ColorG: 1,
-			ColorB: 1,
-			ColorA: 1,
-		})
+		// Uvs.XY  0~1
+		if IsAzurLane { // IsAzurLane=true
+			res = append(res, ebiten.Vertex{
+				DstX:   (drawable.Pos[i].X*size + Origin.X) * Scale,
+				DstY:   (-drawable.Pos[i].Y*size + Origin.Y) * Scale,
+				SrcX:   drawable.Uvs[i].X * w,
+				SrcY:   (1 - drawable.Uvs[i].Y) * h,
+				ColorR: 1,
+				ColorG: 1,
+				ColorB: 1,
+				ColorA: 1,
+			})
+		} else { // IsAzurLane=false Pos.XY  -0.5~0.5 一般情况
+			res = append(res, ebiten.Vertex{
+				DstX:   drawable.Pos[i].X*size + Origin.X,
+				DstY:   -drawable.Pos[i].Y*size + Origin.Y,
+				SrcX:   drawable.Uvs[i].X * w,
+				SrcY:   (1 - drawable.Uvs[i].Y) * h,
+				ColorR: 1,
+				ColorG: 1,
+				ColorB: 1,
+				ColorA: 1,
+			})
+		}
 	}
 	return res
 }
 
-func NewMotionManager(model *Model, w float32, h float32) *MotionManager {
-	return &MotionManager{Model: model, W: w, H: h,
-		Mask: ebiten.NewImage(int(w), int(h)), Src: ebiten.NewImage(int(w), int(h)),
+func NewMotionManager(model *Model) *MotionManager {
+	return &MotionManager{Model: model,
+		Mask: ebiten.NewImage(int(Size.X), int(Size.Y)), Src: ebiten.NewImage(int(Size.X), int(Size.Y)),
 		Shader: OpenShader("mask.kage"), AudioPlayer: NewAudioPlayer(model.RootDir)}
 }

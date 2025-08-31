@@ -5,13 +5,13 @@
 package main
 
 import (
+	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type App struct {
 	MotionManager *MotionManager
-	Scale         float64
 	AnimIndex     int
 	AnimNames     []string
 }
@@ -34,17 +34,28 @@ func (a *App) Update() error {
 		x, y := ebiten.WindowPosition()
 		ebiten.SetWindowPosition(x+currX-lastX, y+currY-lastY)
 	}
+	if ebiten.IsKeyPressed(ebiten.KeyW) {
+		Origin.Y -= 20
+	} else if ebiten.IsKeyPressed(ebiten.KeyS) {
+		Origin.Y += 20
+	} else if ebiten.IsKeyPressed(ebiten.KeyA) {
+		Origin.X -= 20
+	} else if ebiten.IsKeyPressed(ebiten.KeyD) {
+		Origin.X += 20
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+		fmt.Println(Origin.X, Origin.Y)
+	}
 	return nil
 }
 
 func (a *App) Draw(screen *ebiten.Image) {
-	a.MotionManager.Draw(screen, a.Scale)
+	a.MotionManager.Draw(screen)
 }
 
 func (a *App) Layout(w, h int) (int, int) {
 	return w, h
 }
 
-func NewApp(motionManager *MotionManager, scale float32) *App {
-	return &App{MotionManager: motionManager, Scale: float64(scale), AnimIndex: 0, AnimNames: motionManager.GetAllMotions()}
+func NewApp(motionManager *MotionManager) *App {
+	return &App{MotionManager: motionManager, AnimIndex: 0, AnimNames: motionManager.GetAllMotions()}
 }

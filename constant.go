@@ -26,8 +26,3 @@ const (
 	DFlagVertexPositionChange
 	DFlagBlendColorChange
 )
-
-var (
-	WinW = float32(0)
-	WinH = float32(0)
-)
