@@ -1,6 +1,19 @@
 ### 查考文档
 - https://docs.live2d.com/en/cubism-sdk-manual/cubism-core-api-reference/
 - [NativeCoreAPIReference5.pdf](cubism_sdk/NativeCoreAPIReference5.pdf)
+### 演示效果
+#### 官方案例
+
+https://github.com/user-attachments/assets/aaa74f68-cda0-474f-a47a-4a326c099413
+
+https://github.com/user-attachments/assets/9b2f72da-54b5-41a6-acf3-7d7670014652
+
+#### 游戏资源
+
+https://github.com/user-attachments/assets/c1577a3b-4996-4c66-bc61-082bf42c538c
+
+https://github.com/user-attachments/assets/c78fd7e2-2ada-401d-91ba-9d9f91e0ced5
+
 ### SDK 下载
 https://www.live2d.com/en/sdk/download/native/<br>
 dll：动态链接<br>
